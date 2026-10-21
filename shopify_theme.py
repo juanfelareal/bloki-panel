@@ -327,7 +327,7 @@ SECTIONS['bk-producto'] = product_lookup('section.settings.product') + '''
 })
 
 # Video subido a Archivos de Shopify (Contenido → Archivos). Vacío = la sección no se muestra.
-VIDEO_REF = ''  # se llena al subir el video: 'shopify://files/videos/bloki-como-funciona.mp4'
+VIDEO_REF = 'shopify://files/videos/bloki-como-funciona.mp4'
 
 SECTIONS['bk-video'] = SEC_CLASS + '''
 {%- if section.settings.video != blank or request.design_mode -%}
