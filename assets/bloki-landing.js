@@ -115,13 +115,13 @@
       if (!id) missing = true;
       counts[id] = (counts[id] || 0) + 1;
     });
-    if (missing || !cfg.store) {
-      err.textContent = 'Falta conectar la tienda: completa "store" y los IDs de variante en CONFIG (build.py).';
+    if (missing) {
+      err.textContent = 'La compra se hace en la tienda (blokipresente.co). Esta es una vista previa.';
       return;
     }
     btn.disabled = true; btn.textContent = 'Procesando...';
     var items = Object.keys(counts).map(function (id) { return id + ':' + counts[id]; }).join(',');
-    var url = 'https://' + cfg.store + '/cart/' + items;
+    var url = (cfg.store ? 'https://' + cfg.store : '') + '/cart/' + items;
     if (cfg.discountCodes && cfg.discountCodes[sel.dataset.qty]) url += '?discount=' + encodeURIComponent(cfg.discountCodes[sel.dataset.qty]);
     window.location.href = url;
   });
