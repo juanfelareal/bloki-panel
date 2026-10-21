@@ -347,11 +347,11 @@ def s_mega(a):
     res = ''.join(f'<li><span class="list__ic">{icon(i, 1.3)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in a['results'])
     return f'''<section class="sec sec--tight" id="como-funciona"><div class="wrap">{details}</div></section>
 <section class="sec sec--deep"><div class="wrap">
-  <span class="eyebrow">¿Te suena familiar?</span>
+  <div class="split"><div class="split__copy"><span class="eyebrow">¿Te suena familiar?</span>
   <h2 class="h2 h2--lines">{lines}</h2>
   <p class="lead">{a["pain_text"]}</p>
-  <div class="pains">{pains}</div>
-  <figure class="figure"><img src="../assets/{a.get("pain_img", "bloki-morado-app.jpg")}" alt="Bloki morado junto al celular con la app abierta" loading="lazy"></figure>
+  <div class="pains">{pains}</div></div>
+  <figure class="figure"><img src="../assets/{a.get("pain_img", "bloki-morado-app.jpg")}" alt="Bloki morado junto al celular con la app abierta" loading="lazy"></figure></div>
 </div></section>'''
 
 def s_modes(a):
@@ -416,9 +416,9 @@ def s_compare(a):
 
 def s_faq(a):
     return f'''<section class="sec sec--deep" id="preguntas"><div class="wrap">
-  <span class="eyebrow">Preguntas</span>
-  <h2 class="h2">Lo que más nos preguntan</h2>
-  {acc([q for q in a["faq"] if q[0].startswith("¿Qué pasa si se me pierde")] + a["faq_cases"] + [q for q in a["faq"] if not q[0].startswith("¿Qué pasa si se me pierde")], first_open=False)}
+  <div class="faq"><div class="faq__head"><span class="eyebrow">Preguntas</span>
+  <h2 class="h2">Lo que más nos preguntan</h2></div>
+  <div class="faq__list">{acc([q for q in a["faq"] if q[0].startswith("¿Qué pasa si se me pierde")] + a["faq_cases"] + [q for q in a["faq"] if not q[0].startswith("¿Qué pasa si se me pierde")], first_open=False)}</div></div>
 </div></section>'''
 
 def s_reviews(a):
@@ -455,7 +455,7 @@ def render(slug, a):
     cfg = {'slug': slug, 'store': CONFIG['store'], 'unitPrice': CONFIG['unit_price'], 'variants': CONFIG['variants'],
            'discountCodes': CONFIG['discount_codes'], 'popupCode': CONFIG['popup_code'], 'popupDelay': CONFIG['popup_delay']}
     draft = '' if PUBLICAR else f'<div class="draft-bar">BORRADOR · {a["avatar"]} · <a href="../index.html">todos</a></div>'
-    body = ''.join([s_announce(a), s_header(a), s_gallery(a), s_buy(a), s_why(a),
+    body = ''.join([s_announce(a), s_header(a), '<div class="pdp">', s_gallery(a), s_buy(a), '</div>', s_why(a),
                     s_mega(a), s_compare(a), s_faq(a)])
     desc = html.escape(a['meta_desc'])
     return f'''<!doctype html>

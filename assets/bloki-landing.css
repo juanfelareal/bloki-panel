@@ -362,3 +362,63 @@ button{font-family:inherit;color:inherit}
 .cmp th.us img{width:40px;height:40px;object-fit:cover;border-radius:10px}
 .sticky img{object-fit:cover}
 .pop__art img{width:120px;height:120px;object-fit:cover;border-radius:16px}
+
+/* ══ Computador ══ (en celular nada de esto aplica: .pdp, .split y .faq son bloques normales) */
+.pdp+.sec{border-top:0;padding-top:0}
+@media (min-width:1024px){
+  :root{--w:1160px}
+  .wrap{padding:0 40px}
+  .header__in{max-width:1240px;padding:0 28px}
+  .sec{padding:72px 0}
+  .sec--tight{padding:48px 0}
+  .h2{font-size:36px;line-height:1.12}
+  .eyebrow{margin-bottom:14px}
+
+  /* galería (fija) + caja de compra, como Plenara */
+  .pdp{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:56px;max-width:1240px;margin:0 auto;padding:32px 40px 24px;align-items:start}
+  .pdp>.sec{padding:0;border:0}
+  .pdp>.sec>.wrap{max-width:none;padding:0}
+  .pdp>#top{position:sticky;top:80px}
+  .gal{grid-template-columns:96px minmax(0,1fr);gap:14px}
+  .chip{font-size:9px}
+  .thumbs{gap:8px;margin-top:12px}
+  .thumbs button{flex-basis:72px;height:72px}
+  .buy__card{padding:32px 32px 26px}
+  .buy__title{font-size:40px}
+  .buy__sub{font-size:17px}
+  .pdp+.sec{padding-top:24px}
+
+  /* por qué sí funciona + garantía, en una fila */
+  .why{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;align-items:stretch}
+  .why__card{padding:32px}
+  .why__card h3{font-size:30px}
+  .why__guar{grid-template-columns:52px 1fr;align-content:center}
+  .why__icon{width:52px;height:52px}
+
+  /* ficha del producto: centrada y más angosta */
+  #como-funciona .wrap{max-width:820px}
+
+  /* dolores: texto a la izquierda, foto fija a la derecha */
+  .split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:64px;align-items:start}
+  .split .figure{margin:0;position:sticky;top:96px}
+  .split .figure img{aspect-ratio:4/5}
+  .h2--lines{font-size:44px;line-height:1.08}
+  .pain{padding:24px 24px 24px 0}
+
+  /* comparativa centrada */
+  .sec .cmp{max-width:900px;margin:0 auto;font-size:14px}
+  .cmp th{font-size:12.5px}
+  .cmp .txt{font-size:12.5px}
+  .sec:has(.cmp) .wrap{max-width:900px}
+
+  /* preguntas: título fijo a la izquierda, lista a la derecha */
+  .faq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:64px;align-items:start}
+  .faq__head{position:sticky;top:96px}
+  .acc summary{font-size:16px;padding:20px 40px 20px 0}
+
+  .sticky__in{max-width:1240px;padding:0 40px}
+}
+@media (min-width:1024px) and (max-width:1180px){
+  .pdp{gap:36px}
+  .h2--lines{font-size:38px}
+}
