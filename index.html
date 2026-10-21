@@ -1,0 +1,58 @@
+<!doctype html><html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bloki · Panel del proyecto</title><meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/bloki-landing.css">
+<link rel="stylesheet" href="assets/panel.css">
+<style>
+.hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0;margin-top:8px;border-top:1px solid var(--line)}
+.hub-card{display:flex;flex-direction:column;gap:10px;padding:26px 24px 26px 0;border-bottom:1px solid var(--line);text-decoration:none;transition:opacity .2s}
+.hub-card:hover{opacity:.6}
+.hub-card h2{margin:0;font-size:19px;font-weight:600;letter-spacing:-.02em}
+.hub-card p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.55}
+.hub-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}
+.hub-go{margin-top:auto;font-size:13px;font-weight:500}
+</style></head><body><main class="panel">
+<div class="panel__top">
+  <img src="assets/bloki-wordmark.png" alt="Bloki" style="height:26px;width:auto">
+  <div class="panel__tools"><span data-saved>Conectando…</span>
+    <button class="btn-s" type="button" data-export>Exportar</button><button class="btn-s" type="button" data-import-btn>Importar</button><button class="btn-s" type="button" data-logout>Salir</button>
+    <input type="file" accept="application/json" data-import hidden></div>
+  <h1>Panel del proyecto</h1>
+</div>
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="landings">Landings</button>
+  <button type="button" role="tab" data-tab="finanzas">Escenario financiero</button>
+  <button type="button" role="tab" data-tab="pendientes">Pendientes</button>
+</nav>
+<div data-pane="landings"><section class="pn"><div class="pn__head"><span class="k">8 landings · una por avatar</span>
+  <h2>Misma estructura, distinto texto por avatar</h2>
+  <p>Galería, caja de compra, por qué sí funciona, ficha, dolores del avatar, comparativa y preguntas. En borrador, lo que falta aparece con borde rojo.</p></div>
+  <div class="hub-grid"><a class="hub-card" href="general/index.html" >
+      <span class="hub-k">Plantilla base</span><h2>Versión general</h2><p>La landing madre. Habla del dolor que más le funciona a Brick en anuncios: el celular decide a dónde se va tu atención. Sirve para tráfico frío sin segmentar.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="mama-papa/index.html" >
+      <span class="hub-k">Avatar 1</span><h2>Mamá y papá</h2><p>El avatar más frecuente en reseñas y el que más inversión tiene hoy en los anuncios de Brick. Escena: el sofá con el hijo hablándote y tú en el celular.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="noche/index.html" >
+      <span class="hub-k">Avatar 2</span><h2>La noche</h2><p>La escena número uno en reseñas, de lejos: scrollear en la cama hasta las 2 de la mañana, y lo primero que haces al despertar. Bloki duerme fuera del cuarto.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="trabajo/index.html" >
+      <span class="hub-k">Avatar 3</span><h2>El que trabaja con el celular</h2><p>No puede apagar el celular porque vive de él: WhatsApp de clientes, banco, correo. El ángulo de Brick "No social, no Slack, pero sigo pidiendo Uber" duró 178 días.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="ya-probe-todo/index.html" >
+      <span class="hub-k">Avatar 4</span><h2>Ya probé todo</h2><p>Le da "ignorar" a todo, borra y vuelve a bajar las apps, y le funciona dos días. En las reseñas pesa mucho la gente con TDAH; aquí se le habla por la escena, sin diagnóstico.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="pareja/index.html" >
+      <span class="hub-k">Avatar 5</span><h2>Parejas</h2><p>Brick no tiene landing para parejas (apenas empezó a probarlo en anuncios el 18 oct). Bloki tiene modo Romántico, reto 1 vs 1 y el plan de 2: un Bloki para cada uno.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="estudiante/index.html" >
+      <span class="hub-k">Avatar 6</span><h2>Estudiante</h2><p>Universitario de 18 a 26, épocas de parciales, desactiva y reactiva redes una y otra vez. Es el que más abandona, por eso la landing se apoya en retos y ranking con amigos.</p>
+      <span class="hub-go">Ver landing →</span></a><a class="hub-card" href="regalo/index.html" >
+      <span class="hub-k">Avatar 7 · temporada</span><h2>El que regala</h2><p>Para Navidad y fechas especiales. Brick tiene landing de regalo y "Give the gift of focus". Compra quien ve a otro pegado al celular: mamá, pareja, hermano, amigo.</p>
+      <span class="hub-go">Ver landing →</span></a></div></section></div>
+<div class="lock" data-lock hidden><form class="lock__card" autocomplete="on">
+  <span class="k">Panel protegido</span><h2 data-lock-title>Ingresa la clave del panel</h2><p data-lock-sub></p>
+  <label>Tu nombre<input class="in" name="quien" autocomplete="name" placeholder="Para saber quién guardó cada cambio"></label>
+  <label>Clave<input class="in" name="clave" type="password" autocomplete="current-password" required></label>
+  <label data-lock-confirm hidden>Repite la clave<input class="in" name="confirmar" type="password" autocomplete="new-password"></label>
+  <button class="btn-s btn-s--ink" type="submit">Entrar</button><p class="lock__msg" data-lock-msg></p></form></div>
+<div data-pane="finanzas" hidden></div>
+<div data-pane="pendientes" hidden></div>
+</main>
+<script type="application/json" id="panel-config">{"planes": [{"qty": 1, "price": 89900, "name": "Individual"}, {"qty": 2, "price": 159900, "name": "Dúo"}, {"qty": 3, "price": 199900, "name": "Combo"}], "tareas": [["Confirmar si un mismo celular puede vincularse a varios Bloki (lo afirma la landing de trabajo)", "Juanfe", "", "todo", "alta"], ["Reemplazar los costos supuestos del escenario financiero por los reales", "Juanfe", "", "todo", "alta"], ["Crear en Shopify el descuento automático por cantidad (2 = −$19.900, 3 = −$69.800)", "Juanfe", "", "todo", "alta"], ["Llenar CONFIG en build.py: tienda e ID de variante de Amarillo, Morado y Negro", "Juanfe", "", "todo", "alta"], ["Definir el % del código del reto de 21 días", "Juanfe", "", "todo", "media"], ["Validar con la app el mensaje de voz al primer toque (landing de regalo)", "Juanfe", "", "todo", "media"], ["Armar las 8 playlists por modo y las de 50 minutos en Spotify", "Juanfe", "", "todo", "media"], ["Grabar los 7 audios para dormir", "Juanfe", "", "todo", "media"], ["Cargar en la app los 30 retos de familia y las 52 preguntas para la mesa", "Juanfe", "", "todo", "media"], ["Medidas y material del Bloki para la ficha", "Juanfe", "", "todo", "media"], ["Confirmar: control parental en tablets, ranking sin Bloki, descuento a estudiantes, fecha límite de Navidad, nota de regalo", "Juanfe", "", "todo", "media"], ["Decidir si hay pago contra entrega", "Juanfe", "", "todo", "media"], ["Conectar el popup a Klaviyo y crear el código de descuento", "Juanfe", "", "todo", "media"], ["Conseguir testimonios y reseñas reales con foto", "Juanfe", "", "todo", "media"], ["Foto del Bloki morado con la pantalla real de la app", "Juanfe", "", "todo", "baja"], ["Logo oficial de PSE en SVG", "Juanfe", "", "todo", "baja"], ["Revisar la garantía \"Si no cambia tu vida\" frente al manual de voz", "Juanfe", "", "todo", "baja"], ["Publicar las landings", "Juanfe", "", "todo", "baja"], ["Precio de 2 unidades: $159.900", "Juanfe", "2026-10-20", "done", "media"], ["Contenido de la caja: 1 Bloki + instrucciones + bienvenida a la comunidad", "Juanfe", "2026-10-20", "done", "media"]], "remote": {"url": "https://mxkkhkafwbictkeytmti.supabase.co", "key": "sb_publishable_N4VPC8DmQgmT3Xp1vHy7qA_bxDQuZXf", "id": "bloki"}}</script>
+<script src="assets/panel.js"></script>
+</body></html>
