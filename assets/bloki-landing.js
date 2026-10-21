@@ -4,21 +4,28 @@
    El botón de compra arma un permalink de carrito de Shopify:
    /cart/VARIANTE:CANT,VARIANTE:CANT  (vacía el carrito y va al checkout). */
 (function () {
-  var cfg = JSON.parse(document.getElementById('bk-config').textContent);
+  // Cada pieza es opcional: en el tema de Shopify las secciones se pueden quitar o mover,
+  // y el editor vuelve a llamar init() cuando recarga una sección.
+  var once = function (el, k) { k = '_bk' + (k || ''); if (el[k]) return false; el[k] = 1; return true; };
+  var init = function () {
+  var cfgEl = document.getElementById('bk-config');
+  var cfg = cfgEl ? JSON.parse(cfgEl.textContent) : { variants: {}, unitPrice: 0 };
   var fmt = function (n) { return '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.'); };
 
   // ── CTA → buy box con destello ──
-  var card = document.querySelector('.buy__card');
   document.querySelectorAll('[data-goto-buy]').forEach(function (a) {
-    a.addEventListener('click', function (e) {
+    if (once(a)) a.addEventListener('click', function (e) {
+      var target = document.getElementById('comprar'), card = document.querySelector('.buy__card');
+      if (!target) return;
       e.preventDefault();
-      document.getElementById('comprar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(function () { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }, 450);
     });
   });
 
   // ── Carruseles ──
   document.querySelectorAll('.carousel').forEach(function (c) {
+    if (!once(c)) return;
     var track = c.querySelector('.track'), items = track.children, dots = c.querySelector('.c-dots');
     if (dots) for (var i = 0; i < items.length; i++) dots.appendChild(document.createElement('i'));
     var cur = function () {
@@ -54,16 +61,18 @@
     plans.forEach(function (x) { x.classList.toggle('on', x === p); x.setAttribute('aria-checked', x === p); });
     sel = p;
     var qty = +p.dataset.qty, price = +p.dataset.price, full = cfg.unitPrice * qty;
+    if (!totalEl) return;
     totalEl.textContent = fmt(price);
     if (full > price) { cmpEl.textContent = fmt(full); cmpEl.hidden = false; saveEl.textContent = 'AHORRAS ' + fmt(full - price); saveEl.hidden = false; }
     else { cmpEl.hidden = true; saveEl.hidden = true; }
   };
   plans.forEach(function (p) {
+    if (!once(p)) return;
     p.addEventListener('click', function (e) { if (!e.target.closest('.sw')) pick(p); });
     p.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(p); } });
     p.querySelectorAll('.colors__row').forEach(function (row) {
       row.querySelectorAll('.sw button').forEach(function (b) {
-        b.addEventListener('click', function () {
+        if (once(b)) b.addEventListener('click', function () {
           row.querySelectorAll('.sw button').forEach(function (x) { x.classList.remove('on'); });
           b.classList.add('on');
           row.querySelector('b').textContent = b.dataset.color;
@@ -72,7 +81,7 @@
       });
     });
   });
-  pick(document.querySelector('.plan.on') || plans[0]);
+  if (plans.length && totalEl) pick(document.querySelector('.plan.on') || plans[0]);
 
   // ── Fecha estimada de entrega (hora Bogotá) ──
   // Antes de las 12 m. en día hábil sale hoy; si no, sale el siguiente día hábil.
@@ -107,8 +116,9 @@
   }
 
   // ── Comprar: permalink de carrito Shopify ──
-  var err = document.querySelector('.buy__err');
-  document.querySelector('[data-buy]').addEventListener('click', function () {
+  var err = document.querySelector('.buy__err'), buyBtn = document.querySelector('[data-buy]');
+  if (buyBtn && once(buyBtn)) buyBtn.addEventListener('click', function () {
+    if (!sel) return;
     var btn = this, counts = {}, missing = false;
     sel.querySelectorAll('.colors__row .sw button.on').forEach(function (b) {
       var id = cfg.variants[b.dataset.color];
@@ -127,15 +137,17 @@
   });
 
   // ── Sticky a los 700px ──
-  var sticky = document.querySelector('.sticky'), buy = document.getElementById('comprar');
-  var onScroll = function () {
+  var sticky = document.querySelector('.sticky');
+  if (sticky && once(window, 'scroll')) window.addEventListener('scroll', function () {
+    var buy = document.getElementById('comprar'), st = document.querySelector('.sticky');
+    if (!buy || !st) return;
     var r = buy.getBoundingClientRect(), inBuy = r.top < window.innerHeight && r.bottom > 0;
-    sticky.classList.toggle('show', window.scrollY > 700 && !inBuy);
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
+    st.classList.toggle('show', window.scrollY > 700 && !inBuy);
+  }, { passive: true });
 
   // ── Popup de descuento ──
   var pop = document.querySelector('.pop'), teaser = document.querySelector('.teaser');
+  if (!pop || !teaser || !once(pop)) return;
   var KEY = 'bloki_pop_' + cfg.slug, seen = false;
   try { seen = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
   var open = function () { pop.classList.add('show'); try { sessionStorage.setItem(KEY, '1'); } catch (e) {} };
@@ -150,4 +162,7 @@
     pop.querySelector('.pop__body').innerHTML = '<h3>Listo.</h3><p>Tu código es <b>' + cfg.popupCode + '</b>. Úsalo en el pago.</p><button class="btn btn--block" data-pop-close type="button">Volver</button>';
     pop.querySelector('[data-pop-close]').onclick = close;
   });
+  };
+  init();
+  document.addEventListener('shopify:section:load', init);
 })();

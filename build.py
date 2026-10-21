@@ -77,6 +77,7 @@ P = {
     'plane': '<path d="M10 14 3 11l1.5-1.5L11 11l5-6a1.5 1.5 0 0 1 2 2l-6 5 1.5 6.5L12 20l-3-7"/>',
     'cart': '<path d="M3 4h2l2.5 11h10.5l2-8H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
     'menu': '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    'sliders': '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
 }
 def icon(name, sw=1.6):
     return f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{P.get(name, P["spark"])}</svg>'
@@ -123,6 +124,7 @@ BASE = {
         ('app', 'APP SIN SUSCRIPCIÓN', 'mint'),
         ('android', 'IPHONE Y ANDROID', 'lilac'),
         ('palette', '3 COLORES', 'coral'),
+        ('sliders', 'MODOS DE ENFOQUE PERSONALIZABLES', 'yellow'),
     ],
     'voices_eyebrow': 'Lo que cuenta la gente',
     'voices_note': 'Comentarios públicos en Reddit sobre intentar usar menos el celular, traducidos. No son clientes de Bloki.',
@@ -137,7 +139,7 @@ BASE = {
         ],
         'ship': 'Llega en 2 a 5 días hábiles · Envío a toda Colombia',
         'cta': 'Comprar ahora →',
-        'trust': ['Envío a toda Colombia', 'Garantía 60 días', 'Pago seguro'],
+        'trust': ['Envío a toda Colombia', 'Garantía 30 días', 'Pago seguro'],
         'pay': ['PSE', 'Nequi', 'Bancolombia', 'VISA', 'Mastercard'],
     },
     'plans': [
@@ -151,13 +153,13 @@ BASE = {
         'title': 'Por qué el límite de pantalla te duró una semana',
         'text': 'El límite de pantalla tiene un botón que dice "Ignorar límite", y está en el mismo celular. Las apps borradas se vuelven a bajar en cuarenta segundos. Con Bloki, <b>para desbloquear tienes que levantarte e ir hasta donde lo dejaste.</b>',
     },
-    'guarantee': {'title': 'Garantía de 60 días', 'text': 'Si no cambia tu vida, <b>te devolvemos el dinero.</b> Sin preguntas.'},
+    'guarantee': {'title': 'Garantía de satisfacción de 30 días', 'text': 'Sin preguntas. Si no te sirve, lo devuelves y <b>te devolvemos el dinero.</b>'},
     'details': [
         ('Qué es', '<p>Un compañero físico con un chip NFC adentro, más una app. No tiene batería y no se carga. Se compra una vez.</p>', True),
         ('Qué trae la caja', '<p><b>1 Bloki</b>, en el color que elegiste.</p><p><b>Instrucciones de uso.</b> De la caja a tu primer bloqueo en un par de minutos.</p><p><b>Tu bienvenida a la comunidad Bloki.</b> Retos, ranking y gente bloqueando contigo.</p>', False),
         ('Cómo se usa', '<p>Abres la app y eliges qué apps se bloquean. Acercas la parte de arriba del celular a Bloki y el modo se activa. Para desbloquear, vuelves a acercarlo.</p>', False),
         ('Compatibilidad', '<p>iPhone y Android con NFC. La mayoría de celulares desde 2015 lo tienen. Cada Bloki se vincula a un solo celular: si son dos, cada uno necesita el suyo.</p>', False),
-        ('Envíos, cambios y garantía', '<p>Envío a toda Colombia, de 2 a 5 días hábiles.</p><p><b>60 días de garantía:</b> lo devuelves y te devolvemos el dinero, sin preguntas.</p>', False),
+        ('Envíos, cambios y garantía', '<p>Envío a toda Colombia, de 2 a 5 días hábiles.</p><p><b>30 días de garantía:</b> lo devuelves y te devolvemos el dinero, sin preguntas.</p>', False),
     ],
     'modes_title': 'Ocho modos. <em>Ocho escenas.</em>',
     'modes_sub': 'Cada uno trae sus apps ya elegidas. Los ajustas cuando quieras. Desliza para verlos.',
@@ -311,7 +313,7 @@ def s_buy(a):
     <h1 class="buy__title">Bloki</h1>
     <p class="buy__sub">{b["sub"]}</p>
     <p class="buy__lead">{b["lead"]}</p>
-    <div class="guar-bar"><span class="guar__seal">60<small>DÍAS</small></span><p><b>{a["guarantee"]["title"]}.</b> {a["guarantee"]["text"]}</p></div>
+    <div class="guar-bar"><span class="guar__seal">30<small>DÍAS</small></span><p><b>{a["guarantee"]["title"]}</b> · Sin preguntas</p></div>
     <ul class="checks">{checks}</ul>
     <p class="ship"><i></i><span data-eta>{b["ship"]}</span></p>
     <div class="plans" role="radiogroup" aria-label="Elige tu plan">{plans}</div>
