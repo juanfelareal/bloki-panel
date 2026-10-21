@@ -205,10 +205,14 @@
     var antes = contrib - pauta - fijos;
     var repUtil = Math.max(0, antes) * pctSum('util');
     var util = antes - repUtil;
+    var por = (state.pcts || []).map(function (r) {
+      var v = r.base === 'neta' ? neta * (+r.pct || 0) / 100 : Math.max(0, antes) * (+r.pct || 0) / 100;
+      return { id: r.id, name: r.name, pct: r.pct, base: r.base, v: v };
+    });
     var m = venta ? contrib / venta : 0;
     return {
       ticket: ticket, upo: upo, pauta: pauta, venta: venta, neta: neta, pedidos: pedidos, unidades: pedidos * upo,
-      producto: producto, variables: variables, fijos: fijos, contrib: contrib, util: util, repNeta: repNeta, repUtil: repUtil, antes: antes,
+      producto: producto, variables: variables, fijos: fijos, contrib: contrib, util: util, repNeta: repNeta, repUtil: repUtil, antes: antes, por: por,
       margen: neta ? util / neta : 0,
       beRoas: m > 0 ? 1 / m : Infinity,
       roasFijos: m > 0 && pauta ? (pauta + fijos) / (m * pauta) : Infinity,
@@ -275,6 +279,19 @@
         return '<td class="' + ((key === 'util' || key === 'margen') && v < 0 ? 'neg' : '') + '">' + fmt(v) + '</td>';
       }).join('') + '<td></td></tr>';
     };
+    // fila con desplegable: cuánto le toca a cada participante
+    var repRows = function (b, label, key) {
+      var people = (state.pcts || []).filter(function (p) { return p.base === b; });
+      if (!people.length) return outRow(label, key, money);
+      var open = openRep[b];
+      var head = '<tr class="rep-head"><td><button class="rep-btn" data-rep="' + b + '" aria-expanded="' + open + '"><span class="rep-car">' + (open ? '▾' : '▸') + '</span>' + label + '</button></td>' +
+        R.map(function (r) { return '<td>' + money(r[key]) + '</td>'; }).join('') + '<td></td></tr>';
+      if (!open) return head;
+      return head + people.map(function (p) {
+        return '<tr class="rep-sub"><td>' + esc(p.name) + '<small>' + String(p.pct).replace('.', ',') + ' % ' + (b === 'util' ? 'de la utilidad' : 'de la venta neta') + '</small></td>' +
+          R.map(function (r) { var x = r.por.filter(function (q) { return q.id === p.id; })[0]; return '<td>' + money(x ? x.v : 0) + '</td>'; }).join('') + '<td></td></tr>';
+      }).join('');
+    };
     var bars = R.map(function (r) {
       var tot = r.neta || 1, segs = [['Producto', r.producto], ['Variables', r.variables + r.repNeta], ['Pauta', r.pauta], ['Fijos', r.fijos], ['Participaciones', r.repUtil]];
       var used = segs.reduce(function (a, s) { return a + s[1]; }, 0), u = Math.max(0, r.neta - used);
@@ -325,14 +342,14 @@
       outRow('Bloki vendidos', 'unidades', int) +
       outRow('Costo de producto', 'producto', money) +
       outRow('Envío + pasarela', 'variables', money) +
-      outRow('Costos en % de la venta neta', 'repNeta', money) +
+      repRows('neta', 'Costos en % de la venta neta', 'repNeta') +
       outRow('Costos fijos', 'fijos', money) +
       outRow('Costo por pedido (CPA)', 'cpa', money, 'sep') +
       outRow('CPA máximo', 'cpaMax', money) +
       outRow('BE ROAS', 'beRoas', xr) +
       outRow('ROAS que cubre los fijos', 'roasFijos', xr) +
       outRow('Utilidad antes de participaciones', 'antes', money) +
-      outRow('Participaciones sobre la utilidad', 'repUtil', money) +
+      repRows('util', 'Participaciones sobre la utilidad', 'repUtil') +
       outRow('Utilidad neta del mes', 'util', money, 'sc-total') +
       outRow('Margen neto', 'margen', pct) +
       '<tr class="sep"><td>A dónde va cada peso<small class="legend"><i class="b0"></i>Producto <i class="b1"></i>Variables <i class="b2"></i>Pauta <i class="b3"></i>Fijos <i class="b4"></i>Participaciones <i class="b5"></i>Utilidad</small></td>' + bars + '<td></td></tr>' +
@@ -360,6 +377,7 @@
     }
   };
 
+  var openRep = { neta: false, util: true };
   var listRows = function (k) { return k === 'fijos' ? state.fijos : k === 'pcts' ? state.pcts : state.costeo[k]; };
 
   fin.addEventListener('input', function (e) {
@@ -391,7 +409,8 @@
   });
 
   fin.addEventListener('click', function (e) {
-    var t = e.target, list = t.closest('[data-list]');
+    var t = e.target, list = t.closest('[data-list]'), rb = t.closest('[data-rep]');
+    if (rb) { openRep[rb.dataset.rep] = !openRep[rb.dataset.rep]; renderFin(); return; }
     if (t.hasAttribute('data-add') && list) {
       listRows(list.dataset.list).push(list.dataset.list === 'pcts' ? { id: uid(), name: 'Nueva participación', pct: 0, base: 'util' } : { id: uid(), name: 'Nuevo concepto', amount: 0 });
     } else if (t.hasAttribute('data-del') && list) {
