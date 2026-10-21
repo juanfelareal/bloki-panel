@@ -42,6 +42,10 @@
         ],
         fee: { pct: 2.99, fixed: 900, ivaFee: true }
       },
+      pcts: [
+        { id: uid(), name: 'Desarrollador de la app', pct: 0, base: 'util', sup: true },
+        { id: uid(), name: 'Diseñadores', pct: 0, base: 'util', sup: true }
+      ],
       fijos: [
         { id: uid(), name: 'Shopify', amount: 160000, sup: true },
         { id: uid(), name: 'Servidor de la app', amount: 100000, sup: true },
@@ -78,7 +82,7 @@
     rpc('panel_save', { p_id: R.id, p_key: key, p_data: state, p_base: base, p_by: who || null }).then(function (res) {
       saving = false;
       if (res.conflict) {
-        state = res.data; base = res.updated_at; cacheLocal(); renderAll();
+        state = norm(res.data); base = res.updated_at; cacheLocal(); renderAll();
         status('Alguien más guardó a las ' + hora(base) + (res.updated_by ? ' (' + res.updated_by + ')' : '') + '. Cargué esa versión: repite tu último cambio.');
         return;
       }
@@ -102,7 +106,7 @@
     var a = document.activeElement;
     if (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName) && a.closest('[data-pane]')) return;
     rpc('panel_load', { p_id: R.id, p_key: key }).then(function (res) {
-      if (res.updated_at !== base) { state = res.data; base = res.updated_at; cacheLocal(); renderAll(); status('Actualizado con cambios de ' + (res.updated_by || 'otra persona') + ' · ' + hora(base)); }
+      if (res.updated_at !== base) { state = norm(res.data); base = res.updated_at; cacheLocal(); renderAll(); status('Actualizado con cambios de ' + (res.updated_by || 'otra persona') + ' · ' + hora(base)); }
     }).catch(function () {});
   }, 20000);
 
@@ -121,7 +125,7 @@
     setTimeout(function () { lockForm.clave.focus(); }, 50);
   };
   var unlocked = function (res, k) {
-    key = k; state = res.data && res.data.v === 1 ? res.data : seed(); base = res.updated_at;
+    key = k; state = norm(res.data && res.data.v === 1 ? res.data : seed()); base = res.updated_at;
     try { localStorage.setItem(PKEY, k); } catch (e) {}
     lock.hidden = true; cacheLocal(); renderAll();
     status('Guardado para todos · ' + hora(base) + (res.updated_by ? ' · ' + res.updated_by : ''));
@@ -158,7 +162,7 @@
       // sin conexión: muestra la última copia de este navegador, solo lectura de facto
       try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
       if (!state || state.v !== 1) state = seed();
-      renderAll(); status('Sin conexión: estás viendo la última copia de este navegador.');
+      norm(state); renderAll(); status('Sin conexión: estás viendo la última copia de este navegador.');
     });
   };
 
@@ -180,6 +184,8 @@
     var f = state.costeo.fee, k = f.ivaFee ? 1 + IVA : 1;
     return { pct: f.pct / 100 * k, fixed: f.fixed * k };
   };
+  var norm = function (st) { if (st && !st.pcts) st.pcts = []; return st; };
+  var pctSum = function (b) { return (state.pcts || []).reduce(function (a, r) { return a + (r.base === b ? (+r.pct || 0) : 0); }, 0) / 100; };
   var sum = function (rows) { return rows.reduce(function (a, r) { return a + (+r.amount || 0); }, 0); };
 
   var calc = function (s) {
@@ -194,12 +200,15 @@
     var producto = pedidos * upo * unitCost;
     var variables = pedidos * (orderCost + fee.fixed) + venta * fee.pct;
     var fijos = sum(state.fijos);
-    var contrib = neta - producto - variables;
-    var util = contrib - pauta - fijos;
+    var repNeta = neta * pctSum('neta');
+    var contrib = neta - producto - variables - repNeta;
+    var antes = contrib - pauta - fijos;
+    var repUtil = Math.max(0, antes) * pctSum('util');
+    var util = antes - repUtil;
     var m = venta ? contrib / venta : 0;
     return {
       ticket: ticket, upo: upo, pauta: pauta, venta: venta, neta: neta, pedidos: pedidos, unidades: pedidos * upo,
-      producto: producto, variables: variables, fijos: fijos, contrib: contrib, util: util,
+      producto: producto, variables: variables, fijos: fijos, contrib: contrib, util: util, repNeta: repNeta, repUtil: repUtil, antes: antes,
       margen: neta ? util / neta : 0,
       beRoas: m > 0 ? 1 / m : Infinity,
       roasFijos: m > 0 && pauta ? (pauta + fijos) / (m * pauta) : Infinity,
@@ -211,7 +220,7 @@
   var planRow = function (p) {
     var unitCost = sum(state.costeo.unit), orderCost = sum(state.costeo.order), fee = feeParts();
     var neta = state.costeo.iva ? p.price / (1 + IVA) : p.price;
-    var prod = p.qty * unitCost, vari = orderCost + fee.fixed + p.price * fee.pct;
+    var prod = p.qty * unitCost, vari = orderCost + fee.fixed + p.price * fee.pct + neta * pctSum('neta');
     var mg = neta - prod - vari;
     return { neta: neta, prod: prod, vari: vari, mg: mg, mgPct: neta ? mg / neta : 0, be: mg > 0 ? p.price / mg : Infinity };
   };
@@ -225,6 +234,21 @@
     }).join('');
     return '<div class="cl" data-list="' + key + '"><div class="cl__head"><h3>' + label + '</h3><span class="cl__total">' + money(sum(rows)) + '<small>' + unitLabel + '</small></span></div>' +
       li + '<button class="add" data-add>+ Agregar</button></div>';
+  };
+
+  var pctList = function () {
+    var rows = state.pcts || [];
+    var li = rows.map(function (r) {
+      return '<div class="cl__row cl__row--pct" data-row="' + r.id + '"><input class="in in--name" data-f="name" value="' + esc(r.name) + '" aria-label="Concepto">' +
+        '<span class="in-pct"><input class="in" data-f="pct" inputmode="decimal" value="' + String(r.pct).replace('.', ',') + '" aria-label="Porcentaje"><span>%</span></span>' +
+        '<select class="in in--sm" data-f="base" aria-label="Sobre qué se calcula"><option value="util"' + (r.base === 'util' ? ' selected' : '') + '>de la utilidad</option><option value="neta"' + (r.base === 'neta' ? ' selected' : '') + '>de la venta neta</option></select>' +
+        (r.sup ? '<span class="sup" title="Supuesto: pon el porcentaje negociado">Supuesto</span>' : '<span></span>') +
+        '<button class="x" data-del aria-label="Quitar">×</button></div>';
+    }).join('');
+    var tn = pctSum('neta') * 100, tu = pctSum('util') * 100, f = function (n) { return n.toFixed(1).replace('.', ',').replace(',0', '') + ' %'; };
+    return '<div class="cl" data-list="pcts"><div class="cl__head"><h3>Costos en %</h3><span class="cl__total cl__total--sm">' + f(tn) + '<small>de la venta neta</small> · ' + f(tu) + '<small>de la utilidad</small></span></div>' +
+      li + '<button class="add" data-add>+ Agregar</button>' +
+      '<p class="note">Sobre la venta neta: se descuenta de cada venta. Sobre la utilidad: se paga solo si el mes deja utilidad, después de producto, variables, pauta y fijos.</p></div>';
   };
 
   var renderFin = function () {
@@ -252,7 +276,7 @@
       }).join('') + '<td></td></tr>';
     };
     var bars = R.map(function (r) {
-      var tot = r.neta || 1, segs = [['Producto', r.producto], ['Variables', r.variables], ['Pauta', r.pauta], ['Fijos', r.fijos]];
+      var tot = r.neta || 1, segs = [['Producto', r.producto], ['Variables', r.variables + r.repNeta], ['Pauta', r.pauta], ['Fijos', r.fijos], ['Participaciones', r.repUtil]];
       var used = segs.reduce(function (a, s) { return a + s[1]; }, 0), u = Math.max(0, r.neta - used);
       var html = segs.concat([['Utilidad', u]]).map(function (s, i) {
         var w = Math.max(0, Math.min(100, s[1] / tot * 100));
@@ -279,11 +303,11 @@
       '<label>Fijo por pedido<span class="in-money"><span>$</span><input class="in" data-fee="fixed" inputmode="numeric" value="' + fmtIn(f.fixed) + '"></span></label>' +
       '<label class="chk"><input type="checkbox" data-fee="ivaFee"' + (f.ivaFee ? ' checked' : '') + '> La comisión paga IVA</label></div></div></div>' +
       '<label class="chk chk--wide"><input type="checkbox" data-iva' + (c.iva ? ' checked' : '') + '> Los precios de venta incluyen IVA (19 %): la venta neta es el precio ÷ 1,19</label>' +
-      '<div class="tbl"><table class="t"><thead><tr><th>Plan</th><th>Precio</th><th>Venta neta</th><th>Producto</th><th>Envío + pasarela</th><th>Margen antes de pauta</th><th>CPA máximo</th><th>BE ROAS</th></tr></thead><tbody>' + plans + '</tbody></table></div>' +
+      '<div class="tbl"><table class="t"><thead><tr><th>Plan</th><th>Precio</th><th>Venta neta</th><th>Producto</th><th>Variables</th><th>Margen antes de pauta</th><th>CPA máximo</th><th>BE ROAS</th></tr></thead><tbody>' + plans + '</tbody></table></div>' +
       '<p class="note">CPA máximo: lo más que puedes pagar en pauta por un pedido de ese plan sin perder plata (antes de costos fijos). BE ROAS: el ROAS desde el que ese plan deja de perder.</p></section>' +
 
-      '<section class="pn"><div class="pn__head"><span class="k">2 · Costos fijos</span><h2>Lo que se paga cada mes, se venda o no</h2></div>' +
-      '<div class="cols cols--one">' + costList('fijos', state.fijos, 'Costos fijos del mes', 'al mes') + '</div></section>' +
+      '<section class="pn"><div class="pn__head"><span class="k">2 · Fijos y participaciones</span><h2>Lo que se paga cada mes, y lo que se reparte en %</h2></div>' +
+      '<div class="cols">' + costList('fijos', state.fijos, 'Costos fijos del mes', 'al mes') + pctList() + '</div></section>' +
 
       '<section class="pn"><div class="pn__head"><span class="k">3 · Escenarios</span><h2>¿Qué pasa si…?</h2>' +
       '<p>Cambia la pauta por día, el ROAS esperado y cómo se reparten los pedidos entre planes. Todo se recalcula al escribir.</p></div>' +
@@ -301,14 +325,17 @@
       outRow('Bloki vendidos', 'unidades', int) +
       outRow('Costo de producto', 'producto', money) +
       outRow('Envío + pasarela', 'variables', money) +
+      outRow('Costos en % de la venta neta', 'repNeta', money) +
       outRow('Costos fijos', 'fijos', money) +
       outRow('Costo por pedido (CPA)', 'cpa', money, 'sep') +
       outRow('CPA máximo', 'cpaMax', money) +
       outRow('BE ROAS', 'beRoas', xr) +
       outRow('ROAS que cubre los fijos', 'roasFijos', xr) +
+      outRow('Utilidad antes de participaciones', 'antes', money) +
+      outRow('Participaciones sobre la utilidad', 'repUtil', money) +
       outRow('Utilidad neta del mes', 'util', money, 'sc-total') +
       outRow('Margen neto', 'margen', pct) +
-      '<tr class="sep"><td>A dónde va cada peso<small class="legend"><i class="b0"></i>Producto <i class="b1"></i>Variables <i class="b2"></i>Pauta <i class="b3"></i>Fijos <i class="b4"></i>Utilidad</small></td>' + bars + '<td></td></tr>' +
+      '<tr class="sep"><td>A dónde va cada peso<small class="legend"><i class="b0"></i>Producto <i class="b1"></i>Variables <i class="b2"></i>Pauta <i class="b3"></i>Fijos <i class="b4"></i>Participaciones <i class="b5"></i>Utilidad</small></td>' + bars + '<td></td></tr>' +
       '</tbody></table></div>' +
       '<div class="pn__sub"><h3>Si escalas la pauta de «' + esc((state.escenarios[0] || {}).name || '') + '» con el mismo ROAS</h3>' +
       '<div class="tbl"><table class="t"><thead><tr><th></th><th>Pauta del mes</th><th>Venta</th><th>Pedidos</th><th>Utilidad</th></tr></thead><tbody>' + escala() + '</tbody></table></div>' +
@@ -333,14 +360,19 @@
     }
   };
 
+  var listRows = function (k) { return k === 'fijos' ? state.fijos : k === 'pcts' ? state.pcts : state.costeo[k]; };
+
   fin.addEventListener('input', function (e) {
     var t = e.target;
     refocus(function () {
       var list = t.closest('[data-list]'), row = t.closest('[data-row]'), sc = t.closest('[data-sc]');
       if (list && row) {
-        var rows = list.dataset.list === 'fijos' ? state.fijos : state.costeo[list.dataset.list];
+        var rows = listRows(list.dataset.list);
         var r = rows.filter(function (x) { return x.id === row.dataset.row; })[0];
-        if (t.dataset.f === 'amount') { r.amount = digits(t.value); r.sup = false; } else r.name = t.value;
+        if (t.dataset.f === 'amount') { r.amount = digits(t.value); r.sup = false; }
+        else if (t.dataset.f === 'pct') { r.pct = dec(t.value); r.sup = false; if (/[.,]$/.test(t.value)) { save(); return; } }
+        else if (t.dataset.f === 'base') r.base = t.value;
+        else r.name = t.value;
       } else if (t.dataset.fee) {
         if (t.dataset.fee === 'pct') state.costeo.fee.pct = dec(t.value);
         if (t.dataset.fee === 'fixed') state.costeo.fee.fixed = digits(t.value);
@@ -361,12 +393,10 @@
   fin.addEventListener('click', function (e) {
     var t = e.target, list = t.closest('[data-list]');
     if (t.hasAttribute('data-add') && list) {
-      var rows = list.dataset.list === 'fijos' ? state.fijos : state.costeo[list.dataset.list];
-      rows.push({ id: uid(), name: 'Nuevo concepto', amount: 0 });
+      listRows(list.dataset.list).push(list.dataset.list === 'pcts' ? { id: uid(), name: 'Nueva participación', pct: 0, base: 'util' } : { id: uid(), name: 'Nuevo concepto', amount: 0 });
     } else if (t.hasAttribute('data-del') && list) {
       var id = t.closest('[data-row]').dataset.row;
-      if (list.dataset.list === 'fijos') state.fijos = state.fijos.filter(function (r) { return r.id !== id; });
-      else state.costeo[list.dataset.list] = state.costeo[list.dataset.list].filter(function (r) { return r.id !== id; });
+      var arr = listRows(list.dataset.list); arr.splice(arr.findIndex(function (r) { return r.id === id; }), 1);
     } else if (t.hasAttribute('data-addsc')) {
       state.escenarios.push({ id: uid(), name: 'Nuevo escenario', adsDay: 200000, roas: 2.5, mix: [50, 30, 20] });
     } else if (t.hasAttribute('data-dup')) {
@@ -462,7 +492,7 @@
     var file = imp.files[0]; if (!file) return;
     var r = new FileReader();
     r.onload = function () {
-      try { var s = JSON.parse(r.result); if (s.v !== 1) throw 0; state = s; save(); renderAll(); }
+      try { var s = JSON.parse(r.result); if (s.v !== 1) throw 0; state = norm(s); save(); renderAll(); }
       catch (e) { savedEl.textContent = 'Ese archivo no es un respaldo del panel.'; }
       imp.value = '';
     };

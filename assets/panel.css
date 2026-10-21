@@ -130,3 +130,7 @@ body[data-tab="landings"] .lock{display:none!important}
 .lock__card .in{border-color:var(--line);background:#fff;height:40px}
 .btn-s--ink{background:var(--ink);color:#fff;border-color:var(--ink);justify-content:center;height:42px;margin-top:4px}
 .lock__msg{min-height:1.2em;color:#b42318!important}
+.cl__row--pct{grid-template-columns:minmax(0,1fr) 78px 132px 64px 22px}
+.cl__total--sm{font-size:14px}
+.b4{background:#ece9e3}.b5{background:#C5A8E8}
+@media (max-width:520px){.cl__row--pct{grid-template-columns:minmax(0,1fr) 78px 22px}.cl__row--pct select{grid-column:1/2}.cl__row--pct .sup{display:none}}
