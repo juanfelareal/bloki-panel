@@ -136,6 +136,25 @@
     window.location.href = url;
   });
 
+  // ── Funciones en pestañas ──
+  document.querySelectorAll('.fx').forEach(function (fx) {
+    var tabs = fx.querySelectorAll('[role=tab]'), panels = fx.querySelectorAll('[role=tabpanel]');
+    tabs.forEach(function (t, k) {
+      t.onclick = function () {
+        tabs.forEach(function (x, i) { x.classList.toggle('on', i === k); x.setAttribute('aria-selected', i === k); });
+        panels.forEach(function (p, i) { p.hidden = i !== k; });
+      };
+    });
+  });
+
+  // ── Video: se reproduce (sin sonido) solo cuando está a la vista ──
+  if ('IntersectionObserver' in window) document.querySelectorAll('video[data-autoplay], .vid video').forEach(function (v) {
+    if (!once(v)) return;
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause(); });
+    }, { threshold: 0.4 }).observe(v);
+  });
+
   // ── Sticky a los 700px ──
   var sticky = document.querySelector('.sticky');
   if (sticky && once(window, 'scroll')) window.addEventListener('scroll', function () {

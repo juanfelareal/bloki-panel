@@ -51,6 +51,7 @@ def galeria(slide_avatar, primera='bloki-lila-tejido.jpg'):
     return [
         {'img': primera, 'cover': True, 'alt': 'Bloki morado tejido, tu compañero físico que bloquea las apps que eliges'},
         {'img': 'bloki-amarillo-mano.jpg', 'cover': True, 'alt': 'Bloki amarillo en la mano: cabe entre dos dedos'},
+        {'img': 'bloki-comparativa.jpg', 'cover': True, 'alt': 'Bloki frente al límite de pantalla y las apps de bloqueo'},
         {'img': 'bloki-negro-escritorio.jpg', 'cover': True, 'alt': 'Bloki negro en el escritorio, junto al celular con el modo Trabajo'},
         slide_avatar,
         {'type': 'steps', 'thumb': '3 PASOS', 'k': 'Cómo funciona', 't': 'Un compañero físico, una app y un toque.',

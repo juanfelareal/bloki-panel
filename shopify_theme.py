@@ -228,7 +228,7 @@ SECTIONS['bk-producto'] = product_lookup('section.settings.product') + '''
         {%- if bs.badge != blank %}<span class="plan__badge{% if bs.badge_y %} plan__badge--y{% endif %}">{{ bs.badge }}</span>{% endif %}
         <div class="plan__row"><span class="plan__dot"></span>
           <div><p class="plan__name">{{ bs.name }}</p>
-          <p class="plan__desc">{% render 'bk-money', n: each %} c/u{% if save > 0 %}<span class="plan__save">AHORRA {% render 'bk-money', n: save %}</span>{% endif %}</p></div>
+          <p class="plan__desc">{% render 'bk-money', n: each %} c/u{% if save > 0 %}<span class="plan__save">AHORRA {% render 'bk-money', n: save %}</span>{% endif %}{% if bs.perk != blank %}<span class="plan__perk">{{ bs.perk }}</span>{% endif %}</p></div>
           <p class="plan__price"><strong>{% render 'bk-money', n: price %}</strong>{% if save > 0 %}<s>{% render 'bk-money', n: full %}</s>{% endif %}</p></div>
         <div class="colors">
         {%- for u in (1..qty) -%}
@@ -243,6 +243,7 @@ SECTIONS['bk-producto'] = product_lookup('section.settings.product') + '''
     <div class="total"><span>Total</span><span><strong data-total></strong><s data-compare hidden></s><span class="save" data-save hidden></span></span></div>
     <button type="button" class="btn btn--block" data-buy>{{ ss.cta }}</button>
     <p class="buy__err" role="alert"></p>
+    {%- if ss.cta_note != blank %}<p class="buy__note">{{ ss.cta_note }}</p>{% endif %}
     {%- if ss.tip_q != blank %}
     <div class="tip"><button type="button" class="tip__btn" aria-describedby="tip-{{ section.id }}">{{ ss.tip_q }} <span class="tip__i" aria-hidden="true">i</span></button>
       <span class="tip__box" role="tooltip" id="tip-{{ section.id }}">{{ ss.tip_a }}</span></div>
@@ -285,6 +286,7 @@ SECTIONS['bk-producto'] = product_lookup('section.settings.product') + '''
         {'type': 'paragraph', 'content': 'Los precios de los planes son lo que se muestra. El descuento real lo hacen los descuentos automáticos de Shopify (Descuentos): si cambias un precio aquí, cámbialo también allá.'},
         {'type': 'header', 'content': 'Botón y confianza'},
         {'type': 'text', 'id': 'cta', 'label': 'Botón de compra', 'default': 'Comprar ahora →'},
+        {'type': 'inline_richtext', 'id': 'cta_note', 'label': 'Línea debajo del botón'},
         {'type': 'text', 'id': 'tip_q', 'label': 'Ayuda debajo del botón', 'default': '¿Y si se me pierde?'},
         {'type': 'inline_richtext', 'id': 'tip_a', 'label': 'Respuesta de la ayuda'},
         {'type': 'textarea', 'id': 'trust', 'label': 'Frases de confianza', 'info': 'Una por línea'},
@@ -316,11 +318,56 @@ SECTIONS['bk-producto'] = product_lookup('section.settings.product') + '''
             {'type': 'inline_richtext', 'id': 'name', 'label': 'Nombre', 'default': '<b>Individual</b> · 1 Bloki'},
             {'type': 'number', 'id': 'qty', 'label': 'Cantidad', 'default': 1},
             {'type': 'number', 'id': 'price', 'label': 'Precio total (sin puntos)', 'default': 89900},
+            {'type': 'text', 'id': 'perk', 'label': 'Extra (ej. Envío gratis)', 'info': 'Solo se muestra. El envío gratis real es el descuento automático "Envío gratis desde 2 Bloki".'},
             {'type': 'text', 'id': 'badge', 'label': 'Etiqueta'},
             {'type': 'checkbox', 'id': 'badge_y', 'label': 'Etiqueta en amarillo', 'default': False},
             {'type': 'checkbox', 'id': 'default', 'label': 'Plan elegido al entrar', 'default': False}]},
     ],
     'presets': [{'name': 'Galería y compra'}],
+})
+
+# Video subido a Archivos de Shopify (Contenido → Archivos). Vacío = la sección no se muestra.
+VIDEO_REF = ''  # se llena al subir el video: 'shopify://files/videos/bloki-como-funciona.mp4'
+
+SECTIONS['bk-video'] = SEC_CLASS + '''
+{%- if section.settings.video != blank or request.design_mode -%}
+<section class="{{ cls }}" id="video"><div class="wrap">
+  <div class="center">{% if section.settings.eyebrow != blank %}<span class="eyebrow">{{ section.settings.eyebrow }}</span>{% endif %}{% if section.settings.title != blank %}<h2 class="h2">{{ section.settings.title }}</h2>{% endif %}</div>
+  <div class="vid">{%- if section.settings.video != blank -%}{{ section.settings.video | video_tag: muted: true, loop: true, playsinline: true, controls: true, preload: 'none', image_size: '1600x' }}{%- else -%}{{ 'lifestyle-1' | placeholder_svg_tag }}{%- endif -%}</div>
+</div></section>
+{%- endif -%}''' + schema({
+    'name': 'Video',
+    'settings': [
+        {'type': 'text', 'id': 'eyebrow', 'label': 'Etiqueta', 'default': 'Cómo funciona'},
+        {'type': 'text', 'id': 'title', 'label': 'Título', 'default': 'Bloki en un minuto'},
+        {'type': 'video', 'id': 'video', 'label': 'Video', 'info': 'Se reproduce sin sonido cuando está a la vista.'},
+        FONDO, ESPACIO,
+    ],
+    'presets': [{'name': 'Video'}],
+})
+
+SECTIONS['bk-funciones'] = SEC_CLASS + '''
+<section class="{{ cls }}" id="funciones"><div class="wrap">
+  {%- if section.settings.eyebrow != blank %}<span class="eyebrow">{{ section.settings.eyebrow }}</span>{% endif %}
+  {%- if section.settings.title != blank %}<h2 class="h2">{{ section.settings.title }}</h2>{% endif %}
+  <div class="fx"><div class="fx__tabs" role="tablist">
+    {%- for block in section.blocks -%}<button type="button" role="tab" class="{% if forloop.first %}on{% endif %}" aria-selected="{{ forloop.first }}" {{ block.shopify_attributes }}>{% render 'bk-icon', name: block.settings.icon, sw: 1.4 %}<span>{{ block.settings.label }}</span></button>{%- endfor -%}
+  </div><div class="fx__body">
+    {%- for block in section.blocks -%}<div class="fx__panel" role="tabpanel"{% unless forloop.first %} hidden{% endunless %}><h3>{{ block.settings.title }}</h3>{{ block.settings.text }}</div>{%- endfor -%}
+  </div></div>
+</div></section>''' + schema({
+    'name': 'Funciones en pestañas', 'max_blocks': 10,
+    'settings': [
+        {'type': 'text', 'id': 'eyebrow', 'label': 'Etiqueta', 'default': 'La app'},
+        {'type': 'text', 'id': 'title', 'label': 'Título', 'default': 'Lo que hace la app'},
+        dict(FONDO, default='sec--deep'), ESPACIO,
+    ],
+    'blocks': [{'type': 'tab', 'name': 'Pestaña', 'settings': [
+        ICON_SETTING,
+        {'type': 'text', 'id': 'label', 'label': 'Nombre de la pestaña', 'default': 'Modos'},
+        {'type': 'text', 'id': 'title', 'label': 'Título', 'default': 'Ocho modos listos para usar'},
+        {'type': 'richtext', 'id': 'text', 'label': 'Texto', 'default': '<p>Texto</p>'}]}],
+    'presets': [{'name': 'Funciones en pestañas'}],
 })
 
 SECTIONS['bk-por-que'] = SEC_CLASS + '''
@@ -535,12 +582,12 @@ def landing(a):
     for k, p in enumerate(build.PLANES):
         pl = a['plans'][k]
         items.append(('plan', {'name': f'<b>{names[p["qty"]]}</b> · {p["qty"]} Bloki', 'qty': p['qty'], 'price': p['price'],
-                               'badge': pl.get('badge', ''), 'badge_y': bool(pl.get('badge_y')), 'default': (k + 1) == a['default_plan']}))
+                               'perk': p.get('perk', ''), 'badge': pl.get('badge', ''), 'badge_y': bool(pl.get('badge_y')), 'default': (k + 1) == a['default_plan']}))
     producto = sec('bk-producto', {
         'product': HANDLE, 'launch': 'Precio de lanzamiento por tiempo limitado', 'pill': b['pill'], 'flag': True, 'title': 'Bloki',
         'sub': b['sub'], 'lead': b['lead'], 'guar_days': '30', 'guar_text': f'<b>{guar["title"]}</b> · Sin preguntas',
         'ship': b['ship'], 'eta': True, 'colores': COLORES, 'color_start': str(a.get('color_start', 0) % len(build.COLORS)),
-        'cta': b['cta'], 'tip_q': '¿Y si se me pierde?',
+        'cta': b['cta'], 'cta_note': b['cta_note'], 'tip_q': '¿Y si se me pierde?',
         'tip_a': 'Cada Bloki trae <b>3 desbloqueos de emergencia</b>. Respondes tu pregunta de seguridad y tus apps se desbloquean. Si necesitas más, los encuentras dentro de la app.',
         'trust': '\n'.join(b['trust']), 'pay_pse': True, 'pay_nequi': True, 'pay_bancolombia': True, 'pay_visa': True, 'pay_mastercard': True,
     }, items)
@@ -560,7 +607,11 @@ def landing(a):
     resto = [q for q in a['faq'] if not q[0].startswith('¿Qué pasa si se me pierde')]
     faq = sec('bk-faq', {'eyebrow': 'Preguntas', 'title': 'Lo que más nos preguntan', 'fondo': 'sec--deep', 'tight': False},
               [('q', {'q': q, 'a': ans}) for q, ans in perdida + a['faq_cases'] + resto])
-    sections = {'producto': producto, 'por-que': why, 'ficha': ficha, 'dolores': dolores, 'comparativa': comparativa, 'preguntas': faq}
+    v = a['video']
+    video = sec('bk-video', {'eyebrow': v['eyebrow'], 'title': v['title'], 'video': VIDEO_REF, 'fondo': '', 'tight': False})
+    funciones = sec('bk-funciones', {'eyebrow': a['features_eyebrow'], 'title': a['features_title'], 'fondo': 'sec--deep', 'tight': False},
+                    [('tab', {'icon': i, 'label': lbl, 'title': t, 'text': d}) for i, lbl, t, d in a['features']])
+    sections = {'producto': producto, 'video': video, 'funciones': funciones, 'por-que': why, 'ficha': ficha, 'dolores': dolores, 'comparativa': comparativa, 'preguntas': faq}
     return {'sections': sections, 'order': list(sections)}
 
 def groups():

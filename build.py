@@ -38,8 +38,8 @@ COLORS = [('Amarillo', '#F5D76E'), ('Morado', '#C5A8E8'), ('Negro', '#1C1C1C')]
 # 2 unidades $159.900 (aprobado 2026-10-20); 3 unidades es el combo vigente.
 PLANES = [
     {'qty': 1, 'price': 89900},
-    {'qty': 2, 'price': 159900},
-    {'qty': 3, 'price': 199900},
+    {'qty': 2, 'price': 159900, 'perk': 'Envío gratis'},
+    {'qty': 3, 'price': 199900, 'perk': 'Envío gratis'},
 ]
 
 def money(n):
@@ -139,7 +139,8 @@ BASE = {
         ],
         'ship': 'Llega en 2 a 5 días hábiles · Envío a toda Colombia',
         'cta': 'Comprar ahora →',
-        'trust': ['Envío a toda Colombia', 'Garantía 30 días', 'Pago seguro'],
+        'trust': ['Envío gratis desde 2 unidades', 'Garantía 30 días', 'Pago seguro'],
+        'cta_note': 'El bloqueo no se quita desde el celular. Solo acercándolo a Bloki.',
         'pay': ['PSE', 'Nequi', 'Bancolombia', 'VISA', 'Mastercard'],
     },
     'plans': [
@@ -159,12 +160,22 @@ BASE = {
         ('Qué trae la caja', '<p><b>1 Bloki</b>, en el color que elegiste.</p><p><b>Instrucciones de uso.</b> De la caja a tu primer bloqueo en un par de minutos.</p><p><b>Tu bienvenida a la comunidad Bloki.</b> Retos, ranking y gente bloqueando contigo.</p>', False),
         ('Cómo se usa', '<p>Abres la app y eliges qué apps se bloquean. Acercas la parte de arriba del celular a Bloki y el modo se activa. Para desbloquear, vuelves a acercarlo.</p>', False),
         ('Compatibilidad', '<p>iPhone y Android con NFC. La mayoría de celulares desde 2015 lo tienen. Cada Bloki se vincula a un solo celular: si son dos, cada uno necesita el suyo.</p>', False),
-        ('Envíos, cambios y garantía', '<p>Envío a toda Colombia, de 2 a 5 días hábiles.</p><p><b>30 días de garantía:</b> lo devuelves y te devolvemos el dinero, sin preguntas.</p>', False),
+        ('Envíos, cambios y garantía', '<p>Envío a toda Colombia, de 2 a 5 días hábiles. <b>Gratis llevando 2 o más.</b></p><p><b>30 días de garantía:</b> lo devuelves y te devolvemos el dinero, sin preguntas.</p>', False),
     ],
     'modes_title': 'Ocho modos. <em>Ocho escenas.</em>',
     'modes_sub': 'Cada uno trae sus apps ya elegidas. Los ajustas cuando quieras. Desliza para verlos.',
     'modes_datum': 'NFC · 0 baterías · 8 modos · 1 toque',
     'modes_order': ['trabajo', 'dormir', 'romantico', 'estudio', 'lectura', 'parental', 'viajes', 'conducir'],
+    'video': {'eyebrow': 'Cómo funciona', 'title': 'Bloki en un minuto', 'src': 'bloki-como-funciona.mp4', 'poster': 'bloki-como-funciona.jpg'},
+    'features_eyebrow': 'La app',
+    'features_title': 'Lo que hace la app, incluida y sin suscripción',
+    'features': [
+        ('sliders', 'Modos', 'Ocho modos listos para usar', '<p>Trabajo, Dormir, Estudio, Lectura, Romántico, Viajes, Conducir y Control parental. Cada uno trae sus apps ya elegidas. Los ajustas cuando quieras.</p>'),
+        ('lock', 'Modo estricto', 'Que terminar antes cueste', '<p>Con el modo estricto activo, la sesión no se termina desde el celular. Para salir, vuelves a Bloki.</p>'),
+        ('shield', 'Emergencias', '3 desbloqueos de emergencia', '<p>Si pierdes a Bloki o de verdad lo necesitas, respondes tu pregunta de seguridad y tus apps se desbloquean. Si necesitas más, los encuentras dentro de la app.</p>'),
+        ('chart', 'Estadísticas', 'Racha e intentos frenados', '<p>La app cuenta los días seguidos que cumples, las horas que llevas bloqueadas y cada vez que intentaste abrir una app bloqueada.</p>'),
+        ('trophy', 'Retos', 'Retos y ranking con amigos', '<p>Arma un reto 1 vs 1 o en grupo y compite por horas bloqueadas. Si terminas antes, ese día no suma a tu racha.</p>'),
+    ],
     'cmp_title': '¿Por qué un compañero físico y no otra app?',
     'cmp_cols': ['Bloki', 'Límite de pantalla', 'Apps de bloqueo'],
     'cmp_rows': [
@@ -289,6 +300,7 @@ def s_buy(a):
         if pl.get('badge'):
             badge = f'<span class="plan__badge{" plan__badge--y" if pl.get("badge_y") else ""}">{pl["badge"]}</span>'
         save = f'<span class="plan__save">AHORRA {money(full - price)}</span>' if full > price else ''
+        perk = f'<span class="plan__perk">{base["perk"]}</span>' if base.get('perk') else ''
         strike = f'<s>{money(full)}</s>' if full > price else ''
         tier = {1: 'Individual', 2: 'Dúo', 3: 'Combo'}[qty]
         rows = ''
@@ -301,7 +313,7 @@ def s_buy(a):
         plans += f'''<div class="plan{" on" if on else ""}" role="radio" tabindex="0" aria-checked="{str(on).lower()}" data-qty="{qty}" data-price="{price}">{badge}
       <div class="plan__row"><span class="plan__dot"></span>
         <div><p class="plan__name"><b>{tier}</b> · {qty} Bloki</p>
-        <p class="plan__desc">{money(price / qty)} c/u{save}</p></div>
+        <p class="plan__desc">{money(price / qty)} c/u{save}{perk}</p></div>
         <p class="plan__price"><strong>{money(price)}</strong>{strike}</p></div>
       <div class="colors">{rows}</div>{note}</div>'''
     trust = ''.join(f'<li>{t}</li>' for t in b['trust'])
@@ -320,11 +332,29 @@ def s_buy(a):
     <div class="total"><span>Total</span><span><strong data-total></strong><s data-compare hidden></s><span class="save" data-save hidden></span></span></div>
     <button type="button" class="btn btn--block" data-buy>{b["cta"]}</button>
     <p class="buy__err" role="alert"></p>
+    <p class="buy__note">{b["cta_note"]}</p>
     <div class="tip"><button type="button" class="tip__btn" aria-describedby="tip-perdida">¿Y si se me pierde? <span class="tip__i" aria-hidden="true">i</span></button>
       <span class="tip__box" role="tooltip" id="tip-perdida">Cada Bloki trae <b>3 desbloqueos de emergencia</b>. Respondes tu pregunta de seguridad y tus apps se desbloquean. Si necesitas más, los encuentras dentro de la app.</span></div>
     <ul class="micro">{trust}</ul>
     <div class="pay">{pay}</div>
   </div>
+</div></section>'''
+
+def s_video(a):
+    v = a['video']
+    return f'''<section class="sec" id="video"><div class="wrap">
+  <div class="center"><span class="eyebrow">{v["eyebrow"]}</span><h2 class="h2">{v["title"]}</h2></div>
+  <div class="vid"><video src="../assets/{v["src"]}" poster="../assets/{v["poster"]}" muted playsinline loop controls preload="none" data-autoplay></video></div>
+</div></section>'''
+
+def s_features(a):
+    tabs = ''.join(f'<button type="button" role="tab" class="{"on" if k == 0 else ""}" aria-selected="{str(k == 0).lower()}">{icon(i, 1.4)}<span>{lbl}</span></button>'
+                   for k, (i, lbl, t, d) in enumerate(a['features']))
+    panels = ''.join(f'<div class="fx__panel" role="tabpanel"{"" if k == 0 else " hidden"}><h3>{t}</h3>{d}</div>'
+                     for k, (i, lbl, t, d) in enumerate(a['features']))
+    return f'''<section class="sec sec--deep" id="funciones"><div class="wrap">
+  <span class="eyebrow">{a["features_eyebrow"]}</span><h2 class="h2">{a["features_title"]}</h2>
+  <div class="fx"><div class="fx__tabs" role="tablist">{tabs}</div><div class="fx__body">{panels}</div></div>
 </div></section>'''
 
 def s_why(a):
@@ -457,7 +487,7 @@ def render(slug, a):
     cfg = {'slug': slug, 'store': CONFIG['store'], 'unitPrice': CONFIG['unit_price'], 'variants': CONFIG['variants'],
            'discountCodes': CONFIG['discount_codes'], 'popupCode': CONFIG['popup_code'], 'popupDelay': CONFIG['popup_delay']}
     draft = '' if PUBLICAR else f'<div class="draft-bar">BORRADOR · {a["avatar"]} · <a href="../index.html">todos</a></div>'
-    body = ''.join([s_announce(a), s_header(a), '<div class="pdp">', s_gallery(a), s_buy(a), '</div>', s_why(a),
+    body = ''.join([s_announce(a), s_header(a), '<div class="pdp">', s_gallery(a), s_buy(a), '</div>', s_video(a), s_features(a), s_why(a),
                     s_mega(a), s_compare(a), s_faq(a)])
     desc = html.escape(a['meta_desc'])
     return f'''<!doctype html>
